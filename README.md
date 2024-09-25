@@ -17,6 +17,6 @@ Those mappings are then processed to produce an output csv file containing:
 - The inputted flow log file size can be up to 10 MB
 - The lookup file can have up to 10000 mappings
 - The tags can map to more than one port, protocol combinations
-- Matches are case insensitive
+- Matches are case insensitive (and therefore all tags are converted to lowercase)
 
 For more info on flow logs, https://docs.aws.amazon.com/vpc/latest/userguide/flow-log-records.html

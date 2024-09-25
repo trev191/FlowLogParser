@@ -33,12 +33,13 @@ with open(lookup_table_file_name, 'r') as input_file:
 # Each line is in the following format:
 #   Column: dstport | protocol | tag
 #   Index:     0    |    1     |  2
+# Since matches are case insensitive, tag strings are updated to lowercase
 # Ex. lookup stored in dict: ('25', 'tcp') : 'sv_P1'
 for i in range(1, len(lookup_table_lines)):
     lookup_split = lookup_table_lines[i].replace('\n', '').split(',')
     dstport = lookup_split[0]
     protocol_str = lookup_split[1]
-    tag = lookup_split[2]
+    tag = lookup_split[2].lower()
 
     # Add new lookup to local dict
     key_tuple = (dstport, protocol_str)
@@ -71,7 +72,6 @@ for flow_log_line in flow_log_lines:
     #
     # If we found matching tag, add to tag name count in dict
     if lookup.get(key_tuple) != None:
-        # TODO: add a method for case insensitive tags
         tag = lookup[key_tuple]
         tag_matches[tag] = tag_matches.get(tag, 0) + 1
     # Else no matching tag, add to "Untagged" count in dict
