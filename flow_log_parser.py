@@ -11,8 +11,8 @@ if len(sys.argv) != 2:
 # Read and store data from flow log input file into list
 flow_log_file_name = sys.argv[1]
 flow_log_lines = []
-with open(flow_log_file_name) as file:
-    flow_log_lines = file.readlines()
+with open(flow_log_file_name, 'r') as input_file:
+    flow_log_lines = input_file.readlines()
 
 
 # Read and store lookup table into a dict with the following key:value format:
@@ -26,8 +26,8 @@ lookup_table_file_name = "input_files/lookup_table.csv"
 lookup = {}
 to_protocol_str = {}
 lookup_table_lines = []
-with open(lookup_table_file_name) as file:
-    lookup_table_lines = file.readlines()
+with open(lookup_table_file_name, 'r') as input_file:
+    lookup_table_lines = input_file.readlines()
 
 # Parse lookup csv file; skip first line of column headers.
 # Each line is in the following format:
@@ -84,4 +84,27 @@ for flow_log_line in flow_log_lines:
     port_protocol_matches[key_tuple] = port_protocol_matches.get(key_tuple, 0) + 1
 
 
-# Write tag matches and port protocol matches to an output csv file
+# Write tag matches and port/protocol matches to an output csv file
+output_file_name = "output_files/output.csv"
+with open(output_file_name, 'w') as output_file:
+    # Write tag matches
+    tag_matches_title = "Tag Counts:\n"
+    output_file.write(tag_matches_title)
+    tag_matches_headers = "Tag,Count\n"
+    output_file.write(tag_matches_headers)
+    for tag, count in tag_matches.items():
+        row = tag + ',' + str(count) + '\n'
+        output_file.write(row)
+    output_file.write('\n')
+
+    # Write port/protocol matches
+    port_protocol_matches_title = "Port/Protocol Combination Counts:\n"
+    output_file.write(port_protocol_matches_title)
+    port_protocol_matches_headers = "Port,Protocol,Count\n"
+    output_file.write(port_protocol_matches_headers)
+    for key_tuple, count in port_protocol_matches.items():
+        port, protocol_str = key_tuple
+        row = port + ',' + protocol_str + ',' + str(count) + '\n'
+        output_file.write(row)
+
+    print("Results have been recorded at " + output_file_name)
