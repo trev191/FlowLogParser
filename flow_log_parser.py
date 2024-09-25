@@ -1,9 +1,7 @@
 import sys
 import socket
 
-def remove_newline_from_str(s):
-    return s.replace('\n', '')
-
+# Validate we received a single argument (the flow log file path)
 # argv[0] is python file name, argv[1] is flow log file path
 if len(sys.argv) != 2:
     print("Script expected path to flow log file. Quitting.")
@@ -54,9 +52,36 @@ for i in range(1, len(lookup_table_lines)):
 # Each flow log line is in the following format: (see AWS docs link in README for more info)
 #   Column: version | account-id | interface-id | srcaddr | dstaddr | srcport | dstport | protocol | packets | bytes | start | end | action | log-status
 #   Index:     0    |      1     |      2       |    3    |    4    |    5    |    6    |    7     |    8    |   9   |  10   | 11  |   12   |    13
+#
+# Parse each flow log line and use data to count up tag matches and port/protocol matches
+# to be later recorded to output file
+tag_matches = {}
+port_protocol_matches = {}
 for flow_log_line in flow_log_lines:
     flow_log_split = flow_log_line.replace('\n', '').split(' ')
 
+    # Parse necessary data from flow log and create tuple to be used as key for lookup table
     dstport = flow_log_split[6]
-    protocol = flow_log_split[7]
+    protocol_val = flow_log_split[7]
+    protocol_str = to_protocol_str[int(protocol_val)]
+    key_tuple = (dstport, protocol_str)
 
+    # Add up matches for each tag. Increment by 1 if key:value
+    # already exists, otherwise initialize it to 1 
+    #
+    # If we found matching tag, add to tag name count in dict
+    if lookup.get(key_tuple) != None:
+        # TODO: add a method for case insensitive tags
+        tag = lookup[key_tuple]
+        tag_matches[tag] = tag_matches.get(tag, 0) + 1
+    # Else no matching tag, add to "Untagged" count in dict
+    else:
+        tag_matches["Untagged"] = tag_matches.get("Untagged", 0) + 1
+
+    # Add up matches for each dstport/protocol combination.
+    # Increment by 1 if key:value already exists, otherwise
+    # initialize it to 1
+    port_protocol_matches[key_tuple] = port_protocol_matches.get(key_tuple, 0) + 1
+
+
+# Write tag matches and port protocol matches to an output csv file
