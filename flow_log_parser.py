@@ -1,5 +1,6 @@
 import sys
 import socket
+import time
 
 # Validate we received a single argument (the flow log file path)
 # argv[0] is python file name, argv[1] is flow log file path
@@ -11,8 +12,12 @@ if len(sys.argv) != 2:
 # Read and store data from flow log input file into list
 flow_log_file_name = sys.argv[1]
 flow_log_lines = []
-with open(flow_log_file_name, 'r') as input_file:
-    flow_log_lines = input_file.readlines()
+try:
+    with open(flow_log_file_name, 'r') as input_file:
+      flow_log_lines = input_file.readlines()
+except FileNotFoundError:
+    print("Inputted flow log file " + flow_log_file_name + " could not be found. Quitting.")
+    sys.exit()
 
 
 # Read and store lookup table into a dict with the following key:value format:
@@ -26,8 +31,13 @@ lookup_table_file_name = "input_files/lookup_table.csv"
 lookup = {}
 to_protocol_str = {}
 lookup_table_lines = []
-with open(lookup_table_file_name, 'r') as input_file:
-    lookup_table_lines = input_file.readlines()
+try:
+  with open(lookup_table_file_name, 'r') as input_file:
+      lookup_table_lines = input_file.readlines()
+except FileNotFoundError:
+    print("Lookup table file could not be found at " + lookup_table_file_name + ". Quitting.")
+    sys.exit()
+
 
 # Parse lookup csv file; skip first line of column headers.
 # Each line is in the following format:
@@ -84,8 +94,8 @@ for flow_log_line in flow_log_lines:
     port_protocol_matches[key_tuple] = port_protocol_matches.get(key_tuple, 0) + 1
 
 
-# Write tag matches and port/protocol matches to an output csv file
-output_file_name = "output_files/output.csv"
+# Write tag matches and port/protocol matches to output csv file with Unix timestamp (seconds)
+output_file_name = "output_files/output_" + str(int(time.time())) + ".csv"
 with open(output_file_name, 'w') as output_file:
     # Write tag matches
     tag_matches_title = "Tag Counts:\n"
